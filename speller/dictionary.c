@@ -20,6 +20,9 @@ node;
 // trie root node
 node *root;
 
+// word counter
+unsigned int numWords = 0;
+
 // returns a new initialized node pointer
 struct node* makeNode(void)
 {
@@ -123,6 +126,7 @@ bool load(const char *dictionary)
         }
 
         trie->is_word = true;
+        numWords++;
     }
 
     fclose(file);
@@ -135,7 +139,7 @@ bool load(const char *dictionary)
 unsigned int size(void)
 {
     // TODO
-    return 0;
+    return numWords;
 }
 
 // Unloads dictionary from memory, returning true if successful else false
@@ -143,15 +147,6 @@ bool unload(void)
 {
 
     deleteTrie(root);
-
-    // if (root != NULL)
-    // {
-    //     return false;
-    // }
-    // else
-    // {
-    //     return true;
-    // }
 
     return true;
 }
