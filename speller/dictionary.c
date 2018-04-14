@@ -9,7 +9,7 @@
 
 const int SIZE = 27;
 
-// node struct
+// node struct for a trie
 typedef struct node
 {
     bool is_word;
@@ -17,7 +17,46 @@ typedef struct node
 }
 node;
 
-node *root = NULL;
+// trie root node
+node *root;
+
+// returns a new initialized node pointer
+struct node* makeNode(void)
+{
+    // allocate space for and create a new node
+    struct node *newNode =(struct node*)malloc(sizeof(struct node));
+
+    if (newNode != NULL)
+    {
+        // initialize is_word to false
+        newNode->is_word = false;
+
+        // insert NULL into children array
+        for (int i = 0; i < SIZE; i++)
+        {
+            newNode->children[i] = NULL;
+        }
+    }
+
+    return newNode;
+}
+
+void deleteTrie(node* trie)
+{
+    if(!trie)
+    {
+        return;
+    }
+
+    // recursive case (go to end of trie)
+    for (int i = 0; i < SIZE; i++)
+    {
+       deleteTrie(trie->children[i]);
+    }
+
+    // base case
+    free(trie);
+}
 
 // Returns true if word is in dictionary else false
 bool check(const char *word)
@@ -30,10 +69,10 @@ bool check(const char *word)
 // Loads dictionary into memory, returning true if successful else false
 bool load(const char *dictionary)
 {
-    root = (struct node*)malloc(sizeof(struct node));
-    node* trie = root;
-    trie->is_word = false;
+    // make a new node at root
+    root = makeNode();
 
+    // open and check dictionary file
     FILE *file = fopen(dictionary, "r");
     if (file == NULL)
     {
@@ -41,20 +80,50 @@ bool load(const char *dictionary)
         return false;
     }
 
-    while(!feof(file))
+    // array to store words from dictionary file
+    char letters[47];
+
+
+    // get each word row by row from dictionary file
+    // while checking for the files end
+    while(fgets(letters, sizeof(letters), file) != NULL)
     {
-        char letter;
+        // index for each letter of word
         int index = 0;
+        // copy root node to return to top of trie
+        node* trie = root;
 
-        letter = fgetc(file);
+        // while not at the end of a word
+        // (10 being the decimal value of a new line character)
+        // iterate through each letter
+        while (letters[index] != 10)
+        {
+            // if
+            if (letters[index] == 39)
+            {
+                if (!trie->children[SIZE - 1])
+                {
+                    trie->children[SIZE - 1] = makeNode();
+                }
 
+                trie = trie->children[SIZE - 1];
+            }
+            else
+            {
+                //printf("%c", c[index]);
+                if (!trie->children[letters[index] - 97])
+                {
+                    trie->children[letters[index] - 97] = makeNode();
+                }
 
+                trie = trie->children[letters[index] - 97];
+            }
 
-        printf("%d/", letter);
+            index++;
+        }
+
+        trie->is_word = true;
     }
-
-    printf("%lu\n", sizeof(root));
-    printf("%d", root->is_word);
 
     fclose(file);
 
@@ -72,6 +141,17 @@ unsigned int size(void)
 // Unloads dictionary from memory, returning true if successful else false
 bool unload(void)
 {
-    // TODO
+
+    deleteTrie(root);
+
+    // if (root != NULL)
+    // {
+    //     return false;
+    // }
+    // else
+    // {
+    //     return true;
+    // }
+
     return true;
 }
