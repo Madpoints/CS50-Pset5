@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 #include "dictionary.h"
 
@@ -64,8 +65,40 @@ void deleteTrie(node* trie)
 // Returns true if word is in dictionary else false
 bool check(const char *word)
 {
-    printf("%s ", word);
-    // TODO
+    // copy of root to iterate through trie
+    node* trie = root;
+
+    for (int i = 0; i < strlen(word); i++)
+    {
+        if (word[i] == '\'')
+        {
+            if (!trie->children[SIZE - 1])
+            {
+                return false;
+            }
+            else
+            {
+                trie = trie->children[SIZE - 1];
+            }
+        }
+        else
+        {
+            if (!trie->children[tolower(word[i]) - 'a'])
+            {
+                return false;
+            }
+            else
+            {
+                trie = trie->children[tolower(word[i]) - 'a'];
+            }
+        }
+    }
+
+    if (!trie->is_word)
+    {
+        return false;
+    }
+
     return true;
 }
 
@@ -84,12 +117,12 @@ bool load(const char *dictionary)
     }
 
     // array to store words from dictionary file
-    char letters[47];
+    char word[47];
 
 
     // get each word row by row from dictionary file
     // while checking for the files end
-    while(fgets(letters, sizeof(letters), file) != NULL)
+    while(fgets(word, sizeof(word), file) != NULL)
     {
         // index for each letter of word
         int index = 0;
@@ -97,12 +130,11 @@ bool load(const char *dictionary)
         node* trie = root;
 
         // while not at the end of a word
-        // (10 being the decimal value of a new line character)
         // iterate through each letter
-        while (letters[index] != 10)
+        while (word[index] != '\n')
         {
             // if
-            if (letters[index] == 39)
+            if (word[index] == '\'')
             {
                 if (!trie->children[SIZE - 1])
                 {
@@ -114,12 +146,12 @@ bool load(const char *dictionary)
             else
             {
                 //printf("%c", c[index]);
-                if (!trie->children[letters[index] - 97])
+                if (!trie->children[word[index] - 'a'])
                 {
-                    trie->children[letters[index] - 97] = makeNode();
+                    trie->children[word[index] - 'a'] = makeNode();
                 }
 
-                trie = trie->children[letters[index] - 97];
+                trie = trie->children[word[index] - 'a'];
             }
 
             index++;
@@ -145,8 +177,6 @@ unsigned int size(void)
 // Unloads dictionary from memory, returning true if successful else false
 bool unload(void)
 {
-
     deleteTrie(root);
-
     return true;
 }
